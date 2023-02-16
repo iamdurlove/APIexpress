@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {{>header}}
+</head>
+
+<body>
+    {{>navbar}}
+    <h1 class="text-center">Employee Registration Form</h1>
+    <form action="/register" method="post">
+        <div class="container">
+            <div class="row">
+                <input type="text" class="form-control" name="fname" id="" placeholder="First Name *" required>
+                <input type="text" class="form-control" name="lname" id="" placeholder="Last Name *" required>
+            </div>
+
+            <div class="row">
+                <input type="text" class="form-control" name="email" id="" placeholder="Your Email *" required>
+                <div class="input-radio">
+                    <input type="radio" name="gender" value="male" checked > Male
+                    <input type="radio" name="gender" value="female" >Female
+                </div>
+
+            </div>
+
+            <div class="row">
+                <input type="text" class="form-control" name="phone" id="" placeholder="Your Phone *" required>
+                <input type="text" class="form-control" name="age" id="" placeholder="Your Age *" required>
+            </div>
+
+            <div class="row">
+                <input type="password" class="form-control" name="password" id="" placeholder="Password *" required>
+                <input type="password" class="form-control" name="cpassword" id="" placeholder="Confirm Password *" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </form>
+</body>
+
+</html>

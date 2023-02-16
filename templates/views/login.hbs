@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {{>header}}
+</head>
+
+<body>
+    {{>navbar}}
+    <h1 class="text-center">Employee Login</h1>
+    <form action="/login" method="post">
+            <div class="container">
+                <input type="email" class="form-control" name="email" id="" placeholder="Email *" required>
+                <input type="password" class="form-control" name="password" id="" placeholder="Password *"
+                    required>
+                <div class="error text-center">{{errorMsg}}</div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    </form>
+</body>
+
+</html>
