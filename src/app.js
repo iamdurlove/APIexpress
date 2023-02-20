@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const path = require('path');
@@ -5,9 +6,11 @@ const hbs = require('hbs');
 const Register = require('./models/employee');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const auth = require('./middleware/auth');
 
 require('./db/conn');
-const port = process.env.PORT || 8000;
+const port = process.env.PORT;
 
 //using path to render public folder for static web
 const static_path = path.join(__dirname, '../public');
@@ -23,8 +26,53 @@ hbs.registerPartials(partials_path)
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+
 app.get('/', (req, res) => {
     res.render('index');
+});
+
+app.get('/secret', auth, (req, res) => {
+    // console.log(`awesome token: ${req.cookies.jwt}`);
+    res.render('secret');
+});
+
+// signing out for one device
+app.get('/logout', auth, async (req, res) => {
+    try {
+        res.clearCookie('jwt');
+        // console.log('log out suceess');
+
+        // to delete token from database // single logout
+        req.user.tokens = req.user.tokens.filter((currElement) => {
+            return currElement.token !== req.token;
+        });
+
+        // whole logout
+        req.user.tokens = [];
+
+
+        await req.user.save();
+        res.render('login');
+    } catch (e) {
+        res.status(500).send(e);
+    }
+});
+
+// signing out for whole device
+app.get('/logoutAll', auth, async (req, res) => {
+    try {
+        res.clearCookie('jwt');
+
+        // whole logout
+        req.user.tokens = [];
+
+        await req.user.save();
+        res.render('login');
+    } catch (e) {
+        res.status(500).send(e);
+    }
 });
 
 app.get('/register', (req, res) => {
@@ -57,7 +105,16 @@ app.post('/register', async (req, res) => {
                 phone: req.body.phone,
                 age: req.body.age,
                 password: req.body.password
-            })
+            });
+
+            const token = await registerEmployee.generateAuthToken();
+
+            //generating cookies
+            res.cookie('jwt', token, {
+                expires: new Date(Date.now() + 30000),
+                httpOnly: true
+            });
+
             const registerd = await registerEmployee.save();
             res.status(201).render('index');
 
@@ -87,9 +144,18 @@ app.post('/login', async (req, res) => {
         const check = await Register.findOne({ email: email });
 
         const isMatch = await bcrypt.compare(password, check.password);
+        const token = await check.generateAuthToken();
+        // console.log(`token is ${token}`);
+
+        //generating cookies
+        res.cookie('jwt', token, {
+            expires: new Date(Date.now() + 600000),
+            httpOnly: true,
+            // secure: true
+        });
+
         if (isMatch) {
             res.render('dashboard');
-
         }
         else {
             res.redirect('/login');
@@ -104,16 +170,16 @@ app.post('/login', async (req, res) => {
 
 
 // JSON WEB TOKEN
-const async = createToken = async () => {
-    const token = await jwt.sign({ _id: '4545454' }, 'jhfasjhfjsdhfjhdasjfjsdafhjkdhfjdhfjsdahfjksdhf');
-    console.log(token);
+// const async = createToken = async () => {
+//     const token = await jwt.sign({ _id: '4545454' }, 'jhfasjhfjsdhfjhdasjfjsdafhjkdhfjdhfjsdahfjksdhf');
+//     console.log(token);
 
-    const userVer = await jwt.verify(token, "jhfasjhfjsdhfjhdasjfjsdafhjkdhfjdhfjsdahfjksdhf");
-    console.log(userVer);
+//     const userVer = await jwt.verify(token, "jhfasjhfjsdhfjhdasjfjsdafhjkdhfjdhfjsdahfjksdhf");
+//     console.log(userVer);
 
-};
+// };
 
-createToken();
+// createToken();
 
 app.listen(port, () => {
     console.log(`listening on port no ${port}`);
